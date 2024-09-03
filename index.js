@@ -1,94 +1,77 @@
 const express = require("express");
-const { Translate } = require("@google-cloud/translate").v2;
-const i18next = require("i18next");
+
+const fs = require("fs");
+const path = require("path");
+
 require("dotenv").config(); // Load environment variables
 
 const app = express();
 app.use(express.json());
 
-// Initialize Google Cloud Translation client
-const translate = new Translate({
-  projectId: process.env.GOOGLE_PROJECT_ID, // Set the Google Cloud project ID from environment variables
-});
+const { translateText } = require("./googleTranslate");
+const { translateWithI18next } = require("./i18nextTranslate");
 
-// Route to detect the language and translate the text to a target language (e.g., Japanese)
-app.get("/convert-google/:text", async (req, res) => {
-  const textToConvert = req.params.text;
+// Load available languages from the JSON file
+const languagesPath = path.join(__dirname, "languages.json");
+const languagesData = JSON.parse(fs.readFileSync(languagesPath, "utf8"));
+const availableLanguages = languagesData.languages;
 
+// Helper function to get the language code from the full language name
+const getLanguageCode = (fullLanguage) =>
+  availableLanguages[fullLanguage] || null;
+
+// Helper function to validate input and return appropriate responses
+const validateRequest = (textToConvert, fullLanguage) => {
   if (!textToConvert) {
-    return res.status(400).json({
-      success: false,
+    return {
+      valid: false,
+      status: 400,
       message: "You need to provide text to translate.",
-    });
+    };
   }
 
-  try {
-    // Detect the language of the input text
-    const [detections] = await translate.detect(textToConvert);
-    const detectedLanguage = detections.language;
+  const targetLanguage = getLanguageCode(fullLanguage);
+  if (!targetLanguage) {
+    return {
+      valid: false,
+      status: 400,
+      message: "Invalid language. Please use a valid language name.",
+    };
+  }
 
-    // Translate the text to the target language (Japanese in this case)
-    const [translation] = await translate.translate(textToConvert, "ja");
+  return { valid: true, targetLanguage };
+};
 
-    return res.status(200).json({
-      success: true,
-      originalText: textToConvert,
-      detectedLanguage: detectedLanguage, // Return detected language
-      translatedText: translation, // Translated text
-    });
-  } catch (error) {
-    console.error("Error during translation:", error);
+// Route to detect the language and translate the text to a target language using Google Cloud
+app.get("/convert-google/:lang/:text", async (req, res) => {
+  const { text, lang } = req.params;
 
-    return res.status(500).json({
+  const validation = validateRequest(text, lang);
+  if (!validation.valid) {
+    return res.status(validation.status).json({
       success: false,
-      message: "Translation failed.",
+      message: validation.message,
     });
   }
+
+  const result = await translateText(text, validation.targetLanguage);
+  return res.status(result.success ? 200 : 500).json(result);
 });
 
 // Route using i18next for predefined translations
-app.get("/convert-i18next/:text", (req, res) => {
-  const textToConvert = req.params.text;
+app.get("/convert-i18next/:lang/:text", async (req, res) => {
+  const { text, lang } = req.params;
 
-  i18next.init(
-    {
-      lng: "ja", // Set the default language to Japanese
-      fallbackLng: "en", // Fallback language if translation is missing
-      resources: {
-        en: {
-          translation: {
-            hello_world: "Hello, World", // Predefined translations
-          },
-        },
-        ja: {
-          translation: {
-            hello_world: "こんにちは、世界", // Predefined Japanese translation for "Hello, World"
-          },
-        },
-      },
-    },
-    (err, t) => {
-      if (err) {
-        console.error("Error initializing i18next:", err);
-        return res.status(500).json({
-          success: false,
-          message: "i18next error",
-        });
-      }
+  const validation = validateRequest(text, lang);
+  if (!validation.valid) {
+    return res.status(validation.status).json({
+      success: false,
+      message: validation.message,
+    });
+  }
 
-      // Map input text to a translation key
-      const translationKey = textToConvert.replace(/ /g, "_").toLowerCase();
-
-      // Retrieve translation
-      const translatedText = t(translationKey);
-
-      return res.status(200).json({
-        success: true,
-        originalText: textToConvert,
-        translatedText: translatedText || "Translation not found", // Handle missing translation
-      });
-    }
-  );
+  const result = await translateWithI18next(text, validation.targetLanguage);
+  return res.status(result.success ? 200 : 500).json(result);
 });
 
 // Start server
