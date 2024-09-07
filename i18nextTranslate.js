@@ -45,7 +45,7 @@ async function translateWithI18next(textToConvert, languageCode = "en") {
       },
       ja: {
         translation: {
-          hello_world: "こんにちは、世界", // Example predefined Japanese translation
+          hello_world: "こんにちは世界", // Example predefined Japanese translation
         },
       },
       // Add more languages and translations here as needed
