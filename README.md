@@ -12,24 +12,24 @@ A Node.js application that translates text between languages using both i18next 
 
 1. **Clone the Repository**:
 
-   \`\`\`bash
+   ```bash
    git clone https://github.com/bharatsharma19/Global-Translate.git
    cd Global-Translate
-   \`\`\`
+   ```
 
 2. **Install Dependencies**:
 
-   \`\`\`bash
+   ```bash
    npm install
-   \`\`\`
+   ```
 
 3. **Set Up Environment Variables**:
 
    - Create a \`.env\` file in the root directory of the project and add your Google Cloud API key:
 
-     \`\`\`plaintext
+     ```plaintext
      GOOGLE_TRANSLATE_API_KEY=your-google-api-key
-     \`\`\`
+     ```
 
 4. **Generate Google API Key**:
    - To use the Google Translate API, you need to generate an API key:
@@ -47,20 +47,21 @@ A Node.js application that translates text between languages using both i18next 
 
 Translate text dynamically to Japanese or other target languages:
 
-- **Endpoint**: \`/convert-google/:text\`
+- **Endpoint**: \`/convert-google/:lang/:text\`
 - **Method**: \`GET\`
 - **Parameters**:
+  - \`lang\`: The Lang you want to get Response.
   - \`text\`: The text you want to translate.
 
 #### Example Request:
 
-\`\`\`bash
+```bash
 curl http://localhost:3000/convert-google/Japanese/hello%20world
-\`\`\`
+```
 
 #### Example Response:
 
-\`\`\`json
+```json
 {
   "success": true,
   "originalText": "hello world",
@@ -74,42 +75,43 @@ curl http://localhost:3000/convert-google/Japanese/hello%20world
   },
   "translatedText": "こんにちは世界"
 }
-\`\`\`
+```
 
 ### i18next Endpoint
 
 Use predefined translations for specific keys:
 
-- **Endpoint**: \`/convert-i18next/:text\`
+- **Endpoint**: \`/convert-i18next/:lang/:text\`
 - **Method**: \`GET\`
 - **Parameters**:
+  - \`lang\`: The Lang you want to get Response.
   - \`text\`: The text you want to convert (must match predefined keys).
 
 #### Example Request:
 
-\`\`\`bash
+```bash
 curl http://localhost:3000/convert-i18next/Japanese/hello%20world
-\`\`\`
+```
 
 #### Example Response:
 
-\`\`\`json
+```json
 {
   "success": true,
   "originalText": "hello world",
   "translatedText": "こんにちは世界"
 }
-\`\`\`
+```
 
 ## Running the Application
 
 Start the server on port 3000:
 
-\`\`\`bash
+```bash
 npm start
-\`\`\`
+```
 
-Navigate to \`http://localhost:3000\` to access the endpoints.
+Navigate to `http://localhost:3000` to access the endpoints.
 
 ## License
 
@@ -117,7 +119,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contributing
 
-Feel free to submit issues, feature requests, or pull requests. For more information, check out the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+Feel free to submit issues, feature requests, or pull requests. For more information, ping me.
 
 ## Contact
 
